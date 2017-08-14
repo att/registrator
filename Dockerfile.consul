@@ -1,0 +1,17 @@
+FROM golang:1.9-alpine
+
+COPY . /go/src/github.com/gliderlabs/registrator
+
+ENV GOPATH=/go
+WORKDIR /go/src/github.com/gliderlabs/registrator
+
+RUN apk add --update alpine-sdk \
+    && go get \
+    && go build -ldflags "-X main.Version=$(cat VERSION)" -o /bin/registrator \
+    && rm -rf /go \
+    && apk del --purge alpine-sdk
+
+# Don not use ENTRYPOINT because you cannot freely add additional
+# parameters else you get the message "Options should come before the registry URI argument."
+ENTRYPOINT []
+CMD /bin/registrator -ip=$EXTERNAL_IP consul://$CONSUL_HOST:8500
